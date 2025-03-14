@@ -5,9 +5,11 @@ namespace ProxmoxApi;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\HandlerStack;
 use ProxmoxApi\Exception\AuthenticationException;
 use ProxmoxApi\Exception\ProxmoxApiException;
 use ProxmoxApi\Http\ApiResponse;
+use ProxmoxApi\Http\GuzzleHandler;
 use ProxmoxApi\Api\Nodes;
 use ProxmoxApi\Api\Cluster;
 use ProxmoxApi\Api\Storage;
@@ -97,6 +99,7 @@ class Client
             'port' => 8006,
             'verify' => false,
             'timeout' => 30,
+            'use_coroutine' => false,
         ], $config);
 
         $this->validateConfig();
@@ -124,11 +127,18 @@ class Client
      */
     private function initHttpClient(): void
     {
-        $this->httpClient = new HttpClient([
+        $options = [
             'base_uri' => $this->getBaseUri(),
             'verify' => $this->config['verify'],
             'timeout' => $this->config['timeout'],
-        ]);
+        ];
+
+        // 检查是否需要使用协程处理器
+        if (isset($this->config['use_coroutine']) && $this->config['use_coroutine']) {
+            $options['handler'] = GuzzleHandler::create();
+        }
+
+        $this->httpClient = new HttpClient($options);
     }
 
     /**

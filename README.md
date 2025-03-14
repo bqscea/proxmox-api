@@ -68,6 +68,7 @@ $client->createVM('node1', [
 - 自动处理认证和会话管理
 - 支持异步操作
 - 详细的错误处理和日志记录
+- 支持Hyperf协程环境（需安装hyperf/guzzle）
 
 ## 文档
 
@@ -113,3 +114,37 @@ composer cs-fix
 1. 在 `tests` 目录中创建对应的测试类
 2. 使用 PHPUnit 断言来验证功能
 3. 运行 `composer test` 确保所有测试通过 
+
+## 在Hyperf中使用
+
+本客户端支持在Hyperf框架中使用协程进行HTTP请求，提高并发性能。
+
+### 安装Hyperf Guzzle组件
+
+```bash
+composer require hyperf/guzzle
+```
+
+### 启用协程支持
+
+```php
+<?php
+
+use ProxmoxApi\Client;
+
+// 创建客户端实例，启用协程支持
+$client = new Client([
+    'hostname' => 'your-proxmox-server.com',
+    'username' => 'root',
+    'password' => 'your-password',
+    'realm' => 'pam',
+    'port' => 8006,
+    'verify' => false,
+    'use_coroutine' => true, // 启用协程支持
+]);
+
+// 获取节点列表
+$nodes = $client->getNodes();
+```
+
+启用协程支持后，HTTP请求将使用Swoole协程处理器，可以在协程环境中非阻塞地执行，提高并发性能。 

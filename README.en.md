@@ -68,6 +68,7 @@ $client->createVM('node1', [
 - Automatic authentication and session management
 - Support for asynchronous operations
 - Detailed error handling and logging
+- Support for Hyperf coroutine environment (requires hyperf/guzzle)
 
 ## Documentation
 
@@ -112,4 +113,38 @@ If you want to add tests for new features, please follow these steps:
 
 1. Create a corresponding test class in the `tests` directory
 2. Use PHPUnit assertions to validate functionality
-3. Run `composer test` to ensure all tests pass 
+3. Run `composer test` to ensure all tests pass
+
+## Using with Hyperf
+
+This client supports using coroutines for HTTP requests in the Hyperf framework, improving concurrent performance.
+
+### Install Hyperf Guzzle Component
+
+```bash
+composer require hyperf/guzzle
+```
+
+### Enable Coroutine Support
+
+```php
+<?php
+
+use ProxmoxApi\Client;
+
+// Create client instance with coroutine support enabled
+$client = new Client([
+    'hostname' => 'your-proxmox-server.com',
+    'username' => 'root',
+    'password' => 'your-password',
+    'realm' => 'pam',
+    'port' => 8006,
+    'verify' => false,
+    'use_coroutine' => true, // Enable coroutine support
+]);
+
+// Get list of nodes
+$nodes = $client->getNodes();
+```
+
+With coroutine support enabled, HTTP requests will use the Swoole coroutine handler, allowing them to execute non-blockingly in a coroutine environment, improving concurrent performance. 
