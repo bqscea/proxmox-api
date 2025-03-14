@@ -4,6 +4,7 @@ namespace ProxmoxApi;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Cookie\CookieJar;
 use ProxmoxApi\Exception\AuthenticationException;
 use ProxmoxApi\Exception\ProxmoxApiException;
 use ProxmoxApi\Http\ApiResponse;
@@ -94,7 +95,7 @@ class Client
             'password' => null,
             'realm' => 'pam',
             'port' => 8006,
-            'verify' => true,
+            'verify' => false,
             'timeout' => 30,
         ], $config);
 
@@ -202,9 +203,15 @@ class Client
             $this->login();
         }
 
-        $options['cookies'] = [
-            'PVEAuthCookie' => $this->ticket,
-        ];
+        $cookieJar = new CookieJar();
+        $cookieJar->setCookie(new \GuzzleHttp\Cookie\SetCookie([
+            'Name' => 'PVEAuthCookie',
+            'Value' => $this->ticket,
+            'Domain' => $this->config['hostname'],
+            'Path' => '/',
+        ]));
+        
+        $options['cookies'] = $cookieJar;
 
         if (in_array(strtoupper($method), ['POST', 'PUT', 'DELETE'])) {
             $options['headers'] = [
